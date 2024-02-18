@@ -1,20 +1,45 @@
-Core Features:
-Excel File Interaction: Users can open and load data from Excel files into the application. This functionality is facilitated by the load_excel_file method, which uses pandas to read the data and store it in a DataFrame.
-Data Display: Loaded data from Excel sheets is displayed in tabs corresponding to each sheet within the Excel file. This is managed by the add_sheet_tab method, which creates a new tab for each sheet and displays its contents in a table format.
-Data Editing: The application allows users to directly edit data within the loaded Excel sheets. Edited data is reflected back in the original Excel file, ensuring that changes are persistent. This functionality is primarily handled through the edit_cell method, which enables editing of individual cell values.
-Summation of Numeric Values: The application can sum numeric values within selected cells, including cells with multiple numeric values separated by line breaks. This is achieved with the update_sum_display method, which updates a sum label with the total of selected values.
-Search Feature: Users can search through all loaded data for specific text, numbers, or phrases, enhancing the ease of data navigation and analysis. This is implemented via the search_tables method.
-Context Menus: Right-click context menus provide additional functionality, such as viewing detailed cell information or editing cells, through the show_context_menu method.
-Resizable Tables: The application features resizable tables that adjust row heights automatically to accommodate the content, ensuring readability and ease of use.
-UI Components:
-Main Window Setup: The initUI method sets up the main window, status bar, menu bar, and central widget, which includes the search bar and tab widget for displaying Excel sheet data.
-Dialogs for Additional Information: Through openNewTextWindow and openNewTextWindow2, the application can display dialogs that provide information about the program and usage instructions.
-Custom Table Widget: A custom table widget, CustomTableWidget, enhances interaction by handling mouse events differently, such as ignoring double-clicks and enabling edit mode on single-clicks under certain conditions.
-Utility Functions:
-Data Cleaning: The clean_data method processes data from Excel files to ensure it's in a suitable format for display and analysis, such as trimming strings and rounding float values.
-Excel File Saving: The save_excel_file method saves changes made within the application back to the original Excel file, ensuring that edits are not lost.
-Design and Style:
-The application uses a gray color scheme for its widgets and provides a custom font setting for aesthetics and readability.
-Error Handling and User Feedback:
-Error messages and critical alerts are implemented to inform the user of issues such as file loading errors or saving issues, enhancing the user experience by providing clear feedback.
-This summary encapsulates the primary functions and features of the "ARTEMĪDA" application, highlighting its capabilities as a tool for interacting with, editing, and analyzing Excel file data within a PyQt5 GUI framework.
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ARTEMĪDA Application Summary</title>
+</head>
+<body>
+
+<h1>ARTEMĪDA Application Summary</h1>
+
+<p>The ARTEMĪDA application is a PyQt5-based tool designed for analyzing and editing data from Excel files. Below is an overview of its key functionalities and features:</p>
+
+<h2>Core Features:</h2>
+<ul>
+    <li><strong>Excel File Interaction:</strong> Users can open, load, and interact with data from Excel files. The application utilizes pandas for data handling, enabling seamless data import into the application.</li>
+    <li><strong>Data Display:</strong> Data from each sheet in the Excel file is displayed in its own tab, allowing users to view and interact with the data in a tabulated format.</li>
+    <li><strong>Data Editing:</strong> Direct in-app editing of Excel sheet data is supported, with changes being saved back to the original Excel file for persistence.</li>
+    <li><strong>Summation of Numeric Values:</strong> The application can sum numeric values across selected cells, even those containing multiple numeric entries separated by line breaks.</li>
+    <li><strong>Search Feature:</strong> A search functionality is provided to find specific text, numbers, or phrases within the loaded Excel data, enhancing data accessibility.</li>
+    <li><strong>Context Menus:</strong> Right-click context menus offer additional functionalities like detailed cell information viewing and cell editing.</li>
+    <li><strong>Resizable Tables:</strong> Tables within the application automatically adjust their row heights to fit content, ensuring data readability.</li>
+</ul>
+
+<h2>UI Components:</h2>
+<ul>
+    <li><strong>Main Window Setup:</strong> The main window includes a status bar, menu bar, and a central widget comprising a search bar and tab widget for sheet data display.</li>
+    <li><strong>Information Dialogs:</strong> Dialogs are available to provide users with information about the program and usage instructions.</li>
+    <li><strong>Custom Table Widget:</strong> A custom table widget enhances user interaction by modifying default mouse event behaviors.</li>
+</ul>
+
+<h2>Utility Functions:</h2>
+<ul>
+    <li><strong>Data Cleaning:</strong> Data imported from Excel files is processed to ensure it is in an appropriate format for display and analysis.</li>
+    <li><strong>Excel File Saving:</strong> Edited data can be saved back to the Excel file, ensuring that changes are retained.</li>
+</ul>
+
+<h2>Design and Style:</h2>
+<p>The application adopts a gray color scheme for its widgets and sets a custom font for aesthetic appeal and readability.</p>
+
+<h2>Error Handling and User Feedback:</h2>
+<p>Error messages and alerts provide users with feedback on issues like file loading errors or saving problems, enhancing the overall user experience.</p>
+
+<p>This summary provides an insight into the "ARTEMĪDA" application's capabilities as a comprehensive tool for Excel file data interaction within a PyQt5 GUI framework.</p>
+
+</body>
+</html>
