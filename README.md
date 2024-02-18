@@ -1,7 +1,7 @@
 
 <html>
 <head>
-    <title>ARTEMĪDA Application Summary</title>
+    <title>ARTEMIS CURRENT STATE</title>
 </head>
 <body>
 
