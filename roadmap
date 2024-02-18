@@ -1,4 +1,4 @@
-#Expected features and functionality from 0.6
+#Expected features and functionality before moving to 0600
 	should have a button that saves the table in the detailed view to clipboard with table formatting intact;
 	should make the sum of highlighted cells selectable for copying;
 	should make each row higher and each column narrower for more compact look;
@@ -14,7 +14,7 @@
 
 
 
-moved to future 0700 build
+moved to a future 06xx build
 #should be able to distinguish between general database view and a search bar view which only shows results for queried phrases or numbers
 #should be able to discard any decimals that are either equal to 0 or would round down to less than .01; implemented in 0550
 #should be able to retain past database iterations for rollbacks
