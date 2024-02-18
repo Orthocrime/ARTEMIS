@@ -1,11 +1,6 @@
 
-<html>
-<head>
-    <title>ARTEMIS CURRENT STATE</title>
-</head>
-<body>
 
-<h1>ARTEMĪDA Application Summary</h1>
+<h1>ARTEMIS CURRENT STATE</h1>
 
 <p>The ARTEMĪDA application is a PyQt5-based tool designed for analyzing and editing data from Excel files. Below is an overview of its key functionalities and features:</p>
 
