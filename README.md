@@ -2,7 +2,7 @@
 
 <h1>ARTEMIS CURRENT STATE</h1>
 
-<p>The ARTEMĪDA application is a PyQt5-based tool designed for analyzing and editing data from Excel files. Below is an overview of its key functionalities and features:</p>
+<p>The ARTEMIS application is a PyQt5-based tool designed for analyzing and editing data from Excel files. Below is an overview of its key functionalities and features:</p>
 
 <h2>Core Features:</h2>
 <ul>
