@@ -2,6 +2,7 @@
 	should have a button that saves the table in the detailed view to clipboard with table formatting intact;
 	should make the sum of highlighted cells selectable for copying;
 	should make each row higher and each column narrower for more compact look;
+		all contents up to a character count should be fully visible in the dataframe
 	should further test whether edit function in the program can actually create more than one numerical value within a cell or can is able only edit the values (the precise number of value units) present at the moment of excel file import;
 		it is desirable for user to edit a cell in a way that allows to create as many or as little units of numerical values within the single cell as needed while retaining the summation function;
 	should allow to create new rows;
