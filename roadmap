@@ -1,10 +1,10 @@
 #Expected features and functionality from 0.6
 #should be able to export rtfs with just the relevant row information
 #should be able to distinguish between general database view and a search bar view which only shows results for queried phrases or numbers
-#should be able to discard any decimals that are either equal to 0 or would round down to less than .01
+#should be able to discard any decimals that are either equal to 0 or would round down to less than .01; implemented in 0550
 #should be able to retain past database iterations for rollbacks
 #should allow to create new entries
 #should have user account system for accountability logging
-#should be able to show what values are summed from data locatef in cells that have more than one numerical value in them upon data clean up
-#general redundancy removal
+#should be able to show what values are summed from data located in cells that have more than one numerical value in them upon data clean up; implemented in 0550
+#general redundancy removal; minor decluttering done in 0550
 #should be able to retain formatting from source excel file
