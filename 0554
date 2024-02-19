@@ -1,0 +1,517 @@
+#ARTEMIS_05XXXX
+
+import sys
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QFileDialog, QMessageBox, QWidget, QVBoxLayout,
+                             QTableWidget, QTableWidgetItem, QHeaderView, QAction, QTabWidget, QDialog, 
+                             QTextEdit, QLineEdit, QMenu, QLabel,QStyledItemDelegate, QInputDialog)
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QTextOption
+import pandas as pd
+print(pd.__version__)
+import numpy as np
+import re
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.debug("This is a debug message")
+logging.info("This is an informational message")
+logging.warning("This is a warning message")
+logging.error("This is an error message")
+logging.critical("This is a critical message")
+
+class WordWrapDelegate(QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        option.wrapMode = QTextOption.WordWrap
+        super().paint(painter, option, index)
+
+class ResizableTable(QTableWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.adjustRowHeights()
+
+    def adjustRowHeights(self):
+        for row in range(self.rowCount()):
+            self.resizeRowToContents(row)
+
+class ExtendedTableWidgetItem(QTableWidgetItem):
+    def __init__(self, value):
+        super().__init__(value)
+        self.original_value = None
+
+class ExcelDatabaseApp(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+        self.title = 'ARTEMIS; 0.5xxx-0.6000, 20.2.2024.'
+        self.status_bar = self.statusBar()
+        self.initUI()
+        self.df = None
+        self.row_mapping = []
+        self.dataFrames = {}
+
+    def add_new_row(self):
+        current_sheet_name = self.tabs.tabText(self.tabs.currentIndex())
+        if current_sheet_name in self.dataFrames:
+            current_df = self.dataFrames[current_sheet_name]
+
+            new_row = pd.DataFrame([[np.nan] * len(current_df.columns)], columns=current_df.columns)
+
+            current_df = pd.concat([current_df, new_row], ignore_index=True)
+
+            self.dataFrames[current_sheet_name] = current_df  
+
+            self.refresh_table(current_sheet_name)
+            self.save_excel_file()
+        else:
+            QMessageBox.warning(self, "Error", f"No data found for the sheet: {current_sheet_name}")
+   
+    def add_new_column(self):
+        current_sheet_name = self.tabs.tabText(self.tabs.currentIndex())
+        logging.debug(f"Current sheet name: {current_sheet_name}")
+
+        if current_sheet_name in self.dataFrames:
+            current_df = self.dataFrames[current_sheet_name]
+            logging.debug(f"DataFrame before adding column: {current_df.shape}")
+
+            column_name, ok = QInputDialog.getText(self, "New Column", "Enter the name of the new column:")
+            if ok and column_name:
+                if column_name in current_df.columns:
+                    logging.warning(f"Column '{column_name}' already exists.")
+                    QMessageBox.warning(self, "Warning", f"Column '{column_name}' already exists.")
+                    return
+                
+                current_df[column_name] = np.nan 
+                self.dataFrames[current_sheet_name] = current_df
+
+                logging.debug(f"DataFrame after adding column '{column_name}': {current_df.shape}")
+
+                self.refresh_table(current_sheet_name)
+                self.save_excel_file()
+        else:
+            QMessageBox.warning(self, "Error", f"No data found for the sheet: {current_sheet_name}")
+        self.dataFrames[current_sheet_name] = current_df
+        self.refresh_table(current_sheet_name)
+        self.save_excel_file()
+
+
+    def refresh_table(self, sheet_name):
+        current_df = self.dataFrames.get(sheet_name)
+        if current_df is not None:
+            table = self.tabs.currentWidget().layout().itemAt(0).widget()
+            
+            table.setColumnCount(len(current_df.columns))
+            table.setRowCount(len(current_df.index))
+        
+            table.setHorizontalHeaderLabels(current_df.columns.tolist())
+            
+            for row in range(len(current_df.index)):
+                for col in range(len(current_df.columns)):
+                    value = str(current_df.iloc[row, col]) if current_df.iloc[row, col] is not None else ''
+                    tableItem = QTableWidgetItem(value)
+                    table.setItem(row, col, tableItem)
+        else:
+            QMessageBox.warning(self, "Error", f"No data found for the sheet: {current_sheet_name}")
+    
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(100, 100, 1000, 600)
+        
+        self.sum_label = QLabel("Kopā: 0")
+        self.status_bar.addPermanentWidget(self.sum_label)
+
+        mainMenu = self.menuBar()
+        fileMenu = mainMenu.addMenu('Vispārējā izvēlne')
+      
+        openAction = QAction('Atvērt excel failu', self)
+        openAction.triggered.connect(self.load_excel_file)
+        fileMenu.addAction(openAction)
+        
+        submenu = fileMenu.addMenu('Citas opcijas')
+
+        newTextWindowAction = QAction('Par programmu', self)
+        newTextWindowAction.triggered.connect(self.openNewTextWindow)
+        submenu.addAction(newTextWindowAction)
+
+        newTextWindowAction2 = QAction('Kā lietot', self)
+        newTextWindowAction2.triggered.connect(self.openNewTextWindow2)
+        submenu.addAction(newTextWindowAction2)
+
+        editMenu = self.menuBar().addMenu('Labot failu')
+
+        addSheetAction = QAction('Pievienot jaunu Excel grāmatu', self)
+        addSheetAction.triggered.connect(self.add_new_sheet)
+        print("Add New Sheet action connected.")
+        editMenu.addAction(addSheetAction)
+        print("Added 'Add New Sheet' action to the 'Edit Data' menu")
+        
+        addRowAction = QAction('Pievienot jaunu līniju', self)
+        addRowAction.triggered.connect(self.add_new_row)
+        editMenu.addAction(addRowAction)
+        
+        addColumnAction = QAction('Pievienot jaunu kolonnu', self)
+        addColumnAction.triggered.connect(self.add_new_column)
+        editMenu.addAction(addColumnAction)
+
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget) 
+        
+        self.layout = QVBoxLayout()
+        self.central_widget.setLayout(self.layout)
+
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText("Meklēt visās Excel grāmatās...")
+        self.search_bar.textChanged.connect(self.search_tables)
+        self.layout.addWidget(self.search_bar)
+
+        self.tabs = QTabWidget()
+        self.layout.addWidget(self.tabs)
+
+    def add_new_sheet(self):
+        sheet_name, ok = QInputDialog.getText(self, "New Sheet", "Enter the name of the new sheet:")
+        if ok and sheet_name:
+            sheet_name = sheet_name.strip()
+            if not sheet_name:
+                QMessageBox.warning(self, "Invalid Name", "Sheet name cannot be empty.")
+                return
+            if sheet_name.lower() in (name.lower() for name in self.dataFrames):
+                QMessageBox.warning(self, "Error", f"Sheet '{sheet_name}' already exists.")
+                return
+            new_df = pd.DataFrame(columns=["Column1"])
+            self.dataFrames[sheet_name] = new_df
+            self.add_sheet_tab(new_df, sheet_name)
+            self.save_excel_file()
+
+    def edit_row_data(self, row, table):
+        row_data = [table.item(row, col).text() if table.item(row, col) is not None else "" for col in range(table.columnCount())]
+        first_row_data = [table.item(0, col).text() if table.item(0, col) is not None else "" for col in range(table.columnCount())]
+        dialog = RowEditDialog(row_data, first_row_data, self)
+
+        if dialog.exec_() == QDialog.Accepted:
+            edited_data = dialog.get_row_data()
+            for col, value in enumerate(edited_data):
+                table.item(row, col).setText(value)
+                table.item(row, col).setFlags(table.item(row, col).flags() & ~Qt.ItemIsEditable)
+
+    def revert_last_edited_cell_to_readonly(self):
+        if hasattr(self, 'last_edited_item') and self.last_edited_item:
+            self.last_edited_item.setFlags(self.last_edited_item.flags() & ~Qt.ItemIsEditable)
+            self.last_edited_item = None
+
+    def openNewTextWindow(self):
+        self.textWindow = QDialog(self)
+        self.textWindow.setWindowTitle("Par programmu")
+        self.textWindow.resize(400, 300)  
+        layout = QVBoxLayout()
+        self.textWindow.setLayout(layout)
+
+        textEdit = QTextEdit()
+        textEdit.setText("IZSTRĀDES VERSIJA")  
+        layout.addWidget(textEdit)
+
+        self.textWindow.exec_() 
+
+    def openNewTextWindow2(self):
+        self.textWindow = QDialog(self)
+        self.textWindow.setWindowTitle("")
+        self.textWindow.resize(400, 300)  
+        layout = QVBoxLayout()
+        self.textWindow.setLayout(layout)
+
+        textEdit = QTextEdit()
+        textEdit.setText("IZSTRĀDĒ")  # You can set any default text or make it dynamic
+        layout.addWidget(textEdit)
+
+        self.textWindow.exec_()
+
+    def load_excel_file(self, filePath):
+        filePath, _ = QFileDialog.getOpenFileName(self, "Atvērt Excel failu", "", "Excel Files (*.xlsx);;All Files (*)")
+        if filePath:
+            self.currentFilePath = filePath
+            self.dataFrames = {}
+            xls = pd.ExcelFile(filePath)
+
+            for sheet_name in xls.sheet_names:
+                df = pd.read_excel(filePath, sheet_name=sheet_name)
+                cleaned_df = self.clean_data(df) if not df.empty else pd.DataFrame()
+                self.dataFrames[sheet_name] = cleaned_df
+                self.add_sheet_tab(cleaned_df, sheet_name)
+    
+    def clean_data(self, df):
+        def process_element(x):
+            if isinstance(x, str):
+                return x.strip()
+            elif isinstance(x, float) and x.is_integer():
+                return int(x)  
+            elif isinstance(x, float):
+                return round(x, 2)  
+            return x
+
+        df = df.applymap(process_element)
+        df.replace("", np.nan, inplace=True)
+        df.dropna(how='all', inplace=True)
+
+        df.reset_index(drop=True, inplace=True)
+
+        return df
+    
+    def sum_values_in_cell(cell):
+        parts = re.split(r'[\n\s]+', cell_content)
+        numeric_parts = [float(part.replace(',', '.')) for part in parts if part.replace(',', '.').replace('.', '', 1).isdigit()]
+        return sum(numeric_parts)
+    
+    def add_sheet_tab(self, df, sheet_name):
+        tab_widget = QWidget()  
+        tab_layout = QVBoxLayout(tab_widget)  
+
+        table = ResizableTable() 
+        table.setColumnCount(max(len(df.columns), 1)) 
+        table.setRowCount(max(len(df.index), 1))  
+        
+        if not df.empty:  
+            table.setHorizontalHeaderLabels(df.columns.tolist())  
+
+            for row in range(len(df.index)):  
+                for col in range(len(df.columns)):  
+                    item_value = str(df.iloc[row, col])  
+                    table.setItem(row, col, QTableWidgetItem(item_value))  
+        else:
+            table.setHorizontalHeaderLabels(["Column1"])  
+
+        table.itemSelectionChanged.connect(self.update_sum_display)
+        table.customContextMenuRequested.connect(self.show_context_menu)
+
+        table.itemChanged.connect(self.cell_value_changed)
+
+        tab_layout.addWidget(table)  
+        self.tabs.addTab(tab_widget, sheet_name)  
+            
+    def cell_content_changed(self, row, column):
+        current_widget = self.tabs.currentWidget()
+        if current_widget is not None:
+            layout = current_widget.layout()
+            if layout is not None and layout.count() > 0:
+                table = layout.itemAt(0).widget()
+                if isinstance(table, QTableWidget):
+                    item = table.item(row, column)
+                    if item:
+                        self.last_edited_item = item  
+            else:
+                print("No table widget found in the current tab's layout.")
+
+    def cell_value_changed(self, item):
+        current_sheet_name = self.tabs.tabText(self.tabs.currentIndex())
+        if current_sheet_name in self.dataFrames:
+            current_df = self.dataFrames[current_sheet_name]
+            row, col = item.row(), item.column()
+            new_value = item.text()
+
+            current_df.iat[row, col] = new_value
+
+            self.dataFrames[current_sheet_name] = current_df
+
+            self.save_excel_file()
+        else:
+            QMessageBox.warning(self, "Error", f"No data found for the sheet: {current_sheet_name}")
+
+    def update_sum_display(self):
+        current_widget = self.tabs.currentWidget()
+        if current_widget is not None:
+            table = current_widget.layout().itemAt(0).widget()
+            if isinstance(table, QTableWidget): 
+                selected_items = table.selectedItems()
+                total_sum = 0.0 
+                for item in selected_items:
+                    cell_contents = item.text().replace(',', '.')
+
+                    parts = re.split(r'[\n\s]+', cell_contents)
+                    for part in parts:
+                        try:
+                            total_sum += float(part)
+                        except ValueError:
+                            continue
+                self.sum_label.setText(f"Kopā: {total_sum:.2f}") 
+
+    def search_tables(self):
+        search_text = self.search_bar.text().lower()
+        found_in_sheet = False
+
+        for i in range(self.tabs.count()):
+            tab_widget = self.tabs.widget(i)
+            table = tab_widget.layout().itemAt(0).widget()
+            sheet_has_match = False
+
+            for row in range(table.rowCount()):
+                row_visible = False
+                for col in range(table.columnCount()):
+                    item = table.item(row, col)
+                    if item and search_text in item.text().lower():
+                        row_visible = True
+                        sheet_has_match = True
+                        break
+                table.setRowHidden(row, not row_visible)
+
+            if sheet_has_match and not found_in_sheet:
+                self.tabs.setCurrentIndex(i)
+                found_in_sheet = True
+
+            if not sheet_has_match:
+                for row in range(table.rowCount()):
+                    table.setRowHidden(row, False)
+
+    def show_context_menu(self, position):
+        table = self.sender()
+        index = table.indexAt(position)
+        if not index.isValid():
+            return
+        
+        context_menu = QMenu(self)
+        show_details_action = context_menu.addAction("Skatīt apkopoti par līniju")
+        edit_cell_action = context_menu.addAction("Labot šūnu")
+        
+        action = context_menu.exec_(table.viewport().mapToGlobal(position))
+        if action == show_details_action:
+            self.show_cell_details(index.row(), index.column(), table)
+        elif action == edit_cell_action:
+            self.edit_cell(index.row(), index.column(), table)
+
+    def edit_cell(self, row, column, table):
+        item = table.item(row, column)
+        if item is None:  
+            item = QTableWidgetItem("")  
+            table.setItem(row, column, item)
+        current_value = item.text()
+        sheet_name = self.tabs.tabText(self.tabs.currentIndex())
+        df = self.dataFrames[sheet_name]
+
+        new_value, ok = QInputDialog.getText(self, "Rediģēt šūnu", "Jaunā vērtība (Space starp skaitļiem katru skaitli padara patstāvīgu):", QLineEdit.Normal, current_value)
+
+        if ok and new_value != current_value:
+            
+            processed_value = '\n'.join(new_value.split(' '))
+        
+            if row >= len(df.index) or column >= len(df.columns):
+                new_rows = max(row + 1 - len(df.index), 0)
+                new_cols = max(column + 1 - len(df.columns), 0)
+                for _ in range(new_rows):
+                    df.loc[len(df)] = [np.nan] * len(df.columns) 
+                for _ in range(new_cols):
+                    df[f'Column{len(df.columns) + 1}'] = np.nan 
+
+            self.dataFrames[sheet_name].iat[row, column] = processed_value
+
+            item.setText(processed_value)
+            if hasattr(item, 'original_value') and item.original_value is not None:
+                item.original_value = processed_value  
+
+            self.save_excel_file()
+
+    def toggle_cell_editability(self, table, position):
+        index = table.indexAt(position)
+        if index.isValid():
+            item = table.item(index.row(), index.column())
+            if item:
+                item.setFlags(item.flags() | Qt.ItemIsEditable)
+                QTimer.singleShot(10, lambda: table.editItem(item))
+
+    def show_cell_details(self, row, column, table):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Līnijas datu kopsavilkums")
+        dialog.resize(600, 600) 
+
+        dialog_layout = QVBoxLayout()
+        dialog.setLayout(dialog_layout)
+
+        details_table = QTableWidget(table.columnCount(), 2)
+        details_table.setHorizontalHeaderLabels(['Grupa', 'Vērtība'])
+        details_table.verticalHeader().setVisible(False)
+        details_table.setWordWrap(True)
+        details_table.setEditTriggers(QTableWidget.DoubleClicked) #IZDZĒST??
+
+        delegate = WordWrapDelegate()
+        details_table.setItemDelegateForColumn(1, delegate)
+
+        for col in range(table.columnCount()):
+            header_item = QTableWidgetItem(table.horizontalHeaderItem(col).text())
+            original_value = table.item(row, col).text() if table.item(row, col) is not None else ""
+
+            value_item = QTableWidgetItem(original_value)
+            details_table.setItem(col, 0, header_item)
+            details_table.setItem(col, 1, value_item)
+
+            value_item.setTextAlignment(Qt.AlignLeft | Qt.AlignTop)
+
+            value_item.setTextAlignment(Qt.AlignLeft | Qt.AlignTop)
+            value_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable)
+
+        details_table.setColumnWidth(1, 450)
+        dialog_layout.addWidget(details_table)
+    
+        def update_original():
+            try:
+                for col in range(details_table.rowCount()):
+                    table_row = row
+                    if table_row < len(self.row_mapping):
+                        df_row = self.row_mapping[table_row]
+                        if df_row < len(self.df) and col < len(self.df.columns):
+                            original_item = table.item(table_row, col)
+                            if original_item:
+                                edited_value = details_table.item(col, 1).text()
+                                original_item.setText(edited_value)
+                                self.df.at[df_row, self.df.columns[col]] = edited_value
+                        else:
+                            print(f"DataFrame index out of range: df_row={df_row}, columns={len(self.df.columns)}")
+                    else:
+                        print(f"Row mapping index out of range: table_row={table_row}, row_mapping size={len(self.row_mapping)}")
+                dialog.accept()
+                self.save_excel_file()  
+            except Exception as e:
+                print(f"Error updating original: {e}")
+                dialog.reject()
+
+        for i in range(details_table.rowCount()):
+            details_table.resizeRowToContents(i)
+            
+        dialog.exec_()
+
+    def save_excel_file(self):
+        if not hasattr(self, 'currentFilePath') or not self.currentFilePath:
+            QMessageBox.critical(self, "Error", "No file loaded or file path not set.")
+            return
+
+        try:
+            with pd.ExcelWriter(self.currentFilePath, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+                for sheet_name, df in self.dataFrames.items():
+                    df.to_excel(writer, sheet_name=sheet_name, index=False)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save file: {e}")
+
+class CustomTableWidget(QTableWidget):
+    def __init__(self, *args, **kwargs):
+        super(CustomTableWidget, self).__init__(*args, **kwargs)
+        self.editItemNextPress = None
+
+    def mousePressEvent(self, event):
+        super(CustomTableWidget, self).mousePressEvent(event)
+        if event.button() == Qt.LeftButton and self.editItemNextPress is not None:
+            self.editItem(self.editItemNextPress)
+            self.editItemNextPress = None
+        elif not self.indexAt(event.pos()).isValid():
+            self.clearSelection()
+
+    def mouseDoubleClickEvent(self, event):
+        pass
+
+def main():
+    app = QApplication(sys.argv)
+    from PyQt5.QtGui import QFont
+    app.setFont(QFont("Cambria"))
+    ex = ExcelDatabaseApp()
+    ex.show()
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
