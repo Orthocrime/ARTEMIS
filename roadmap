@@ -1,4 +1,4 @@
-#Expected features and functionality before moving to 0600
+Expected features and functionality before moving to 0600
 	should have a button that saves the table in the detailed view to clipboard with table formatting intact;
 	should make the sum of highlighted cells selectable for copying;
 	should make each row higher and each column narrower for more compact look;
@@ -16,13 +16,21 @@
 
 
 moved to a future 06xx build
-#should be able to distinguish between general database view and a search bar view which only shows results for queried phrases or numbers
-#should be able to discard any decimals that are either equal to 0 or would round down to less than .01; implemented in 0550
-#should be able to retain past database iterations for rollbacks
-#should have user account system for accountability logging
-#should be able to retain formatting from source excel file
+	should be able to distinguish between general database view and a search bar view which only shows results for queried phrases or numbers
+	should be able to discard any decimals that are either equal to 0 or would round down to less than .01; implemented in 0550
+	should be able to retain past database iterations for rollbacks
+	should have user account system for accountability logging
+	should be able to retain formatting from source excel file
+	search bar should only appear when an excel file is imported
+	search bar should a have a cursor indicating whether it has been clicked and is ready for user input
 
-already implemented ahead of relase 0600:
+already implemented ahead of schedule:
 	should be able to show what values are summed from data located in cells that have more than one numerical value in them upon data clean up; implemented in 0550
 	general redundancy check-up; minor decluttering done in 0550
+
+specific future xxxxLAD fork
+	Works only with one specific excel file
+	based upon login information provided by the user (not saved in the app) within the program (this should check what browser user has set as default and use that; should also check whether these webpages have saved login information and try to use it automatically, if it doesn't or the saved login doesn't work, the user should be queried)
+			can populate a specific row within a column with DVS search results relevant to the case contained within the row
+			can update numerical values contained in specific columns based on results from a tab in IAKS
 
