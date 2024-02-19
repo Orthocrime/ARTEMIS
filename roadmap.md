@@ -4,8 +4,8 @@
   - should make each row higher and each column narrower for more compact look;
     - all contents up to a character count should be fully visible in the dataframe
   - should further test whether edit function in the program can actually create more than one numerical value within a cell or can is able only edit the values (the precise number of value units) present at the moment of excel file import
-  - should further test whether loading a new excel file actually purges the dataframe and sets the new source as editable from the dataframe;
     - it is desirable for user to edit a cell in a way that allows to create as many or as little units of numerical values within the single cell as needed while retaining the summation function;
+  - should further test whether loading a new excel file actually purges the dataframe and sets the new source as editable from the dataframe;
   - should allow to create new rows;
   - should make `\` automatically break line;
   - should have some form of backup creation for rollbacks
